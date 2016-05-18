@@ -26,7 +26,6 @@ struct qrpath {
  * BA
  * CX
  */
-
 static const struct {
 	int xa;
 	int ya;
@@ -81,14 +80,6 @@ static const struct {
 static const uint8_t OuterCorners = 0x05;
 static const uint8_t InnerCorners = 0x68;
 static const uint8_t Corners = 0x6d;
-
-typedef struct {
-	qrpath_t *self;
-	int *areas;
-	int cur;
-	int width;
-	int height;
-} context_t;
 
 static inline int get_area(
 		qrpath_t *self,
@@ -258,6 +249,8 @@ static void update(
 				fill_unset(self, x, y, area);
 				area--;
 			}
+
+	self->modified = false;
 }
 
 static void walk_ccw(
