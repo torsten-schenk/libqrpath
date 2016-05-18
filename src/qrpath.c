@@ -1,3 +1,4 @@
+#include <string.h>
 #include <errno.h>
 #include <stdio.h>
 #include <stdbool.h>
@@ -16,7 +17,7 @@ enum {
 
 struct qrpath {
 	bool modified;
-	uint8_t *fields; /* bits indicating whether the bit is set (black) or unset (white) */
+	uint8_t *bits; /* bits indicating whether the bit is set (black) or unset (white) */
 	int *areas; /* assigned area for each bit; = 0: outer white area; < 0: enclosed white area; > 0: black area */
 	int w;
 	int h;
@@ -114,7 +115,7 @@ static inline bool get_bit(
 	bit = y * self->w + x;
 	byte = bit / 8;
 	bit = 7 - bit % 8;
-	return (self->fields[byte] & (1 << bit)) != 0;
+	return (self->bits[byte] & (1 << bit)) != 0;
 }
 
 static inline void set_bit(
@@ -125,7 +126,7 @@ static inline void set_bit(
 	int bit = y * self->w + x;
 	int byte = bit / 8;
 	bit = 7 - bit % 8;
-	self->fields[byte] |= 1 << bit;
+	self->bits[byte] |= 1 << bit;
 }
 
 static inline void unset_bit(
@@ -136,7 +137,7 @@ static inline void unset_bit(
 	int bit = y * self->w + x;
 	int byte = bit / 8;
 	bit = 7 - bit % 8;
-	self->fields[byte] &= ~(1 << bit);
+	self->bits[byte] &= ~(1 << bit);
 }
 
 static inline bool is_corner(
@@ -315,22 +316,41 @@ qrpath_t *qrpath_new(
 	if(self == NULL)
 		return NULL;
 	if((w * h) % 8 == 0)
-		self->fields = calloc(1, (w * h) / 8);
+		self->bits = calloc(1, (w * h) / 8);
 	else
-		self->fields = calloc(1, (w * h) / 8 + 1);
-	if(self->fields == NULL) {
+		self->bits = calloc(1, (w * h) / 8 + 1);
+	if(self->bits == NULL) {
 		free(self);
 		return NULL;
 	}
 	self->areas = calloc(1, w * h * sizeof(int));
 	if(self->areas == NULL) {
-		free(self->fields);
+		free(self->bits);
 		free(self);
 		return NULL;
 	}
 	self->w = w;
 	self->h = h;
 	return self;
+}
+
+void qrpath_destroy(
+		qrpath_t *self)
+{
+	free(self->bits);
+	free(self->areas);
+	free(self);
+}
+
+void qrpath_clear(
+		qrpath_t *self)
+{
+	if((self->w * self->h) % 8 == 0)
+		memset(self->bits, 0, (self->w * self->h) / 8);
+	else
+		memset(self->bits, 0, (self->w * self->h) / 8 + 1);
+	memset(self->areas, 0, self->w * self->h);
+	self->modified = false;
 }
 
 int qrpath_set(

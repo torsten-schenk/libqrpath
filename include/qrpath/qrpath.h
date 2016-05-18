@@ -21,6 +21,9 @@ qrpath_t *qrpath_new(
 void qrpath_destroy(
 		qrpath_t *self);
 
+void qrpath_clear(
+		qrpath_t *self);
+
 int qrpath_set(
 		qrpath_t *self,
 		int x,
