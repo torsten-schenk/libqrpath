@@ -2,6 +2,10 @@
 
 #include <stdlib.h>
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 typedef struct qrpath qrpath_t;
 
 enum {
@@ -51,4 +55,8 @@ const int *qrpath_areas(
 
 void qrpath_dump(
 		qrpath_t *self);
+
+#ifdef __cplusplus
+}
+#endif
 
